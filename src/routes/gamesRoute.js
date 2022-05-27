@@ -4,19 +4,20 @@ import connection from "../database/db.js";
 const gamesRoute = express.Router();
 
 gamesRoute.get('/games', async (req, res) => {
-  let name = req.params?.name;
+  let {name} = req.query;
   if(!name) name = '';
+  console.log(name)
 
   try {
     const games = await connection.query(`
       SELECT games.*, cat.name
       FROM games
       JOIN categories cat ON games."categoryId" = cat.id
-      WHERE games.name  LIKE $1 OR games.name LIKE $2
-    `, [`${name}%`, `${name}%`])
+      WHERE games.name  LIKE $1
+    `, [`${name}%`])
     //FIXME: Verificar casesensitive
 
-    res.send(games);
+    res.send(games.rows);
 
   } catch (e){
     console.log("Error get games.", e);
