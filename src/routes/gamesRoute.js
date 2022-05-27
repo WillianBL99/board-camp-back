@@ -4,7 +4,7 @@ import connection from "../database/db.js";
 const gamesRoute = express.Router();
 
 gamesRoute.get('/games', async (req, res) => {
-  const name = req.params?.name;
+  let name = req.params?.name;
   if(!name) name = '';
 
   try {
@@ -53,3 +53,5 @@ gamesRoute.post('/games', async (req, res) => {
     return res.sendStatus(500);
   }
 });
+
+export default gamesRoute;
