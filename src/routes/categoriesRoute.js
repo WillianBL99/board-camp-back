@@ -1,5 +1,5 @@
 import express from "express";
-import connection from "../database/db";
+import connection from "../database/db.js";
 
 const categoriesRoute = express.Router();
 
@@ -28,11 +28,18 @@ categoriesRoute.post('/categories', async (req, res) => {
     `, [name]);
     if(category) return res.sendStatus(409);
 
+    await connection.query(` 
+      INSERT INTO categories (name)
+      VALUES ($1)
+    `, [name]);
+
     res.sendStatus(201);
-    
+
   } catch (e){
     console.log("Error post categories.", e);
     return res.sendStatus(500);
   }
 
-})
+});
+
+export default categoriesRoute;
