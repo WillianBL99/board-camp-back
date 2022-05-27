@@ -26,7 +26,7 @@ categoriesRoute.post('/categories', async (req, res) => {
     const category = await connection.query(`
       SELECT * FROM categories WHERE name = $1
     `, [name]);
-    if(category) return res.sendStatus(409);
+    if(category.rows[0]) return res.sendStatus(409);
 
     await connection.query(` 
       INSERT INTO categories (name)
