@@ -1,6 +1,7 @@
 import express from "express";
-import dotenv from "dotenv";
+import dotenv, { parse } from "dotenv";
 import connection from "../database/db.js";
+import dayjs from "dayjs";
 
 dotenv.config();
 
@@ -48,12 +49,37 @@ rentalsRoute.get('/rentals', async (req, res) => {
    res.send(result); 
 
   } catch(e){
-    console.log("Error get customers.", e);
+    console.log("Error get rentals.", e);
     return res.sendStatus(500);
   }
 });
 
-rentalsRoute.post('/rentals/:id',(req, res) => {
+rentalsRoute.post('/rentals',async (req, res) => {
+  const {customerId, gameId, daysRented} = req.body;
+  try {
+    const jogo = await connection.query(`
+      SELECT * FROM games
+      WHERE id=$1
+    `, [gameId]);
+
+    console.log('dados',customerId, gameId, Number(daysRented), dayjs().format('DD/MM/YY'), jogo.rows[0].pricePerDay * daysRented)
+
+    await connection.query(`
+      INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
+      VALUES ($1,$2,$3,$4,$5)
+    `, [
+      parseInt(customerId),
+      parseInt(gameId),
+      parseInt(daysRented),
+      dayjs().format('DD/MM/YY'),
+      parseInt(daysRented * jogo.rows[0].pricePerDay)
+    ]);
+
+    res.sendStatus(201);
+  } catch (e) {
+    console.log("Error post rentals.", e);
+    return res.sendStatus(500);
+  }
 
 });
 
