@@ -1,26 +1,11 @@
 import connection from "../database/db.js";
 import dayjs from "dayjs";
 
-export async function getRentals(req, res){
-  let {customerId,gameId} = req.query;
-
-  let query = customerId
-  ?`SELECT * FROM rentals
-      WHERE "customerId"=${customerId}`
-  :`SELECT * FROM rentals`;
-
-  if(!customerId){
-    query = gameId
-      ?`SELECT * FROM rentals
-        WHERE "gameId"=${gameId}`
-      :`SELECT * FROM rentals`;
-
-  }
-  
+export async function getRentals(req, res){    
   try {
-    const rentals = await connection.query(query);  
-
+    const rentals = await connection.query(res.locals.query);
     const result = [];
+
     for(const rental of rentals.rows){
       const {customerId: customer_id, gameId:game_id} = rental;
 
@@ -48,13 +33,9 @@ export async function getRentals(req, res){
 }
 
 export async function postRental(req, res){
-  const {customerId, gameId, daysRented} = req.body;
   try {
-    const jogo = await connection.query(`
-      SELECT * FROM games
-      WHERE id=$1
-    `, [gameId]);
-
+    const {customerId, gameId, daysRented} = req.body;
+    const {pricePerDay} = res.locals;
     
     await connection.query(`
       INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
@@ -64,10 +45,11 @@ export async function postRental(req, res){
       parseInt(gameId),
       parseInt(daysRented),
       dayjs().format('DD/MM/YY'),
-      parseInt(daysRented * jogo.rows[0].pricePerDay)
+      parseInt(daysRented * pricePerDay)
     ]);
 
     res.sendStatus(201);
+
   } catch (e) {
     console.log("Error post rentals.", e);
     return res.sendStatus(500);

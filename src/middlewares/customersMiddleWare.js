@@ -68,14 +68,14 @@ export async function putCustomerMiddleWare(req, res, next){
 
 function isValidCustomerBody(res, body){
   const validation = postCustomerSchema.validate(body, {abortEarly: false});
-    if(validation.error){
-      res.status(400).send(
-        validation.error.details.map(
-        detail => detail.message
-      ));
-      return false;
-    }
-    return true;
+  if(validation.error){
+    res.status(400).send(
+      validation.error.details.map(
+      detail => detail.message
+    ));
+    return false;
+  }
+  return true;
 }
 
 async function isExistentsCPF(res, cpf){
