@@ -95,6 +95,26 @@ export async function postRentalIdMiddleWare(req, res, next){
   }
 }
 
+export async function deleteRentalMiddleWare(req, res, next){
+  try {
+    const {id} = req.params;
+
+    const rental = await connection.query(`
+      SELECT * FROM rentals
+      WHERE id=$1
+    `, [id]);
+
+    if(!rental.rows[0]) return res.sendStatus(404);
+    if(rental.rows[0].returnDate) return res.sendStatus(400);
+
+    next();
+
+  } catch (e) {
+    console.log("Error finalizeRentalsMiddleWare.", e);
+    return res.sendStatus(500);
+  }
+}
+
 async function gameIsAvailable(res, gameId, games){
   const qtdRentedGames = await connection.query(`
     SELECT * FROM rentals
