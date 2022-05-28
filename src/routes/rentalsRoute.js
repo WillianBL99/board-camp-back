@@ -7,34 +7,43 @@ dotenv.config();
 const rentalsRoute = express.Router();
 
 rentalsRoute.get('/rentals', async (req, res) => {
-  try {
-    const rentals = await connection.query(`
-      SELECT * FROM rentals
-    `);
+  let {customerId,gameId} = req.query;
 
-    
+  let query = customerId
+    ?`SELECT * FROM rentals
+      WHERE "customerId"=${customerId}`
+    :`SELECT * FROM rentals`;
+
+    if(!customerId){
+      query = gameId
+        ?`SELECT * FROM rentals
+          WHERE "gameId"=${gameId}`
+        :`SELECT * FROM rentals`;
+
+    }
+
+  try {
+    const rentals = await connection.query(query);    
 
     const result = [];
-    //console.log(rentals.rows, customer.rows, game.rows);
     for(const rental of rentals.rows){
 
-      const {customerId, gameId} = rental;
+      const {customer_id, game_id} = rental;
 
       const customer = await connection.query(`
         SELECT id, name FROM customers
         WHERE id=$1
-      `,[customerId]);
+      `,[customer_id]);
 
       const game = await connection.query(`
         SELECT gm.id, gm.name, gm."categoryId", cat.name AS "categoryName" 
         FROM games gm
         JOIN categories cat ON gm."categoryId" = cat.id
         WHERE gm.id=$1
-      `,[gameId]);
+      `,[game_id]);
 
       result.push({...rental, customer: customer.rows[0], game: game.rows[0]})
     }
-    console.log('result',result)
    
    res.send(result); 
 
