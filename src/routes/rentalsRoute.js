@@ -9,27 +9,28 @@ const rentalsRoute = express.Router();
 
 rentalsRoute.get('/rentals', async (req, res) => {
   let {customerId,gameId} = req.query;
+  console.log('Data: ', customerId, gameId);
 
   let query = customerId
-    ?`SELECT * FROM rentals
+  ?`SELECT * FROM rentals
       WHERE "customerId"=${customerId}`
-    :`SELECT * FROM rentals`;
+  :`SELECT * FROM rentals`;
 
-    if(!customerId){
-      query = gameId
-        ?`SELECT * FROM rentals
-          WHERE "gameId"=${gameId}`
-        :`SELECT * FROM rentals`;
+  if(!customerId){
+    query = gameId
+      ?`SELECT * FROM rentals
+        WHERE "gameId"=${gameId}`
+      :`SELECT * FROM rentals`;
 
-    }
-
+  }
+  
   try {
-    const rentals = await connection.query(query);    
+    const rentals = await connection.query(query);  
 
     const result = [];
     for(const rental of rentals.rows){
-
-      const {customer_id, game_id} = rental;
+      console.log('RETAL',rental)
+      const {customerId: customer_id, gameId:game_id} = rental;
 
       const customer = await connection.query(`
         SELECT id, name FROM customers
@@ -42,11 +43,13 @@ rentalsRoute.get('/rentals', async (req, res) => {
         JOIN categories cat ON gm."categoryId" = cat.id
         WHERE gm.id=$1
       `,[game_id]);
-
-      result.push({...rental, customer: customer.rows[0], game: game.rows[0]})
+      
+      console.log('game: ', game.rows)
+      result.push({...rental, customer: customer.rows[0], game: game.rows[0]})  
     }
-   
-   res.send(result); 
+    
+    console.log(result)
+    res.send(result); 
 
   } catch(e){
     console.log("Error get rentals.", e);

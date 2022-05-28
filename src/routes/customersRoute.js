@@ -32,7 +32,7 @@ customersRoute.get('/customers/:id', async (req, res) => {
     console.log(id, customers.rows[0]);
     if(!customers.rows[0]) return res.sendStatus(404);
 
-    res.send(customers.rows);
+    res.send(customers.rows[0]);
 
   } catch(e){
     console.log("Error get customers.", e);
