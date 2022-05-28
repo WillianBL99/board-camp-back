@@ -1,9 +1,9 @@
 import connection from "../database/db.js";
-import { categoriesSchema } from "../schemas/categoriesSchema";
+import {postCategoriesSchema} from "../schemas/categoriesSchema.js";
 
-export function getCategoriesMiddleWare(req, res, next){
+export async function postCategoriesMiddleWare(req, res, next){
   try {
-    const validation = categoriesSchema.validate(req.body, {abortEarly: false});
+    const validation = postCategoriesSchema.validate(req.body, {abortEarly: false});
     if(validation.error){
       return res.sendStatus(400);
     }

@@ -1,10 +1,9 @@
 import connection from "../database/db.js";
 
 export async function getCustomers(req, res){
-  let {cpf} = req.query;
-  if(!cpf) cpf = '';
-
   try {
+    let {cpf} = res.locals;
+
     const customers = await connection.query(`
       SELECT * FROM customers
       WHERE cpf LIKE $1
@@ -19,16 +18,10 @@ export async function getCustomers(req, res){
 }
 
 export async function getCustomer(req, res){
-  const {id} = req.params;
   try {
-    const customers = await connection.query(`
-    SELECT * FROM customers
-    WHERE id=$1
-    `, [id]);
-    
-    if(!customers.rows[0]) return res.sendStatus(404);
+    const {customers} = res.locals;
 
-    res.send(customers.rows[0]);
+    res.send(customers);
 
   } catch(e){
     console.log("Error get customers.", e);
@@ -36,17 +29,9 @@ export async function getCustomer(req, res){
   }
 }
 
-export async function postCustomer(req, res){
-  const {name,phone,cpf,birthday} = req.body;
-  //FIXME: JOI
-
+export async function postCustomer(req, res){  
   try {
-    const customers = await connection.query(`
-      SELECT * FROM customers
-      WHERE cpf = $1
-    `, [cpf]);
-
-    if(customers.rows[0]) return res.sendStatus(409);
+    const {name,phone,cpf,birthday} = req.body;
 
     await connection.query(`
       INSERT INTO customers
@@ -63,23 +48,19 @@ export async function postCustomer(req, res){
 }
 
 export async function putCustomer(req, res){
-  const {name,phone,cpf,birthday} = req.body;
-  const {id} = req.params;
-
   try {
-    const customersId = await connection.query(`
-      SELECT * FROM customers
-      WHERE id = $1
-    `, [id]);
+    const {name,phone,cpf,birthday} = req.body;
+    const {id} = req.params;
 
-    if(!customersId.rows[0]) return res.sendStatus(404);
-    
-    const customersCPF = await connection.query(`
-      SELECT * FROM customers
-      WHERE cpf = $1
-    `, [cpf]);
-
-    if(customersCPF.rows[0]) return res.sendStatus(409);
+    await connection.query(`
+      UPDATE customers
+      SET 
+        name=$1,
+        phone=$2,
+        cpf=$3,
+        birthday=$4
+      WHERE id=$5
+    `, [name,phone,cpf,birthday, id]);
 
     res.sendStatus(200);
 
