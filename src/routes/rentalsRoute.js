@@ -9,7 +9,6 @@ const rentalsRoute = express.Router();
 
 rentalsRoute.get('/rentals', async (req, res) => {
   let {customerId,gameId} = req.query;
-  console.log('Data: ', customerId, gameId);
 
   let query = customerId
   ?`SELECT * FROM rentals
@@ -29,7 +28,6 @@ rentalsRoute.get('/rentals', async (req, res) => {
 
     const result = [];
     for(const rental of rentals.rows){
-      console.log('RETAL',rental)
       const {customerId: customer_id, gameId:game_id} = rental;
 
       const customer = await connection.query(`
@@ -44,11 +42,9 @@ rentalsRoute.get('/rentals', async (req, res) => {
         WHERE gm.id=$1
       `,[game_id]);
       
-      console.log('game: ', game.rows)
       result.push({...rental, customer: customer.rows[0], game: game.rows[0]})  
     }
     
-    console.log(result)
     res.send(result); 
 
   } catch(e){
@@ -65,8 +61,7 @@ rentalsRoute.post('/rentals',async (req, res) => {
       WHERE id=$1
     `, [gameId]);
 
-    console.log('dados',customerId, gameId, Number(daysRented), dayjs().format('DD/MM/YY'), jogo.rows[0].pricePerDay * daysRented)
-
+    
     await connection.query(`
       INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
       VALUES ($1,$2,$3,$4,$5)
@@ -86,12 +81,44 @@ rentalsRoute.post('/rentals',async (req, res) => {
 
 });
 
-rentalsRoute.post('/rentals/:id/return',(req, res) => {
-
+rentalsRoute.post('/rentals/:id/return',async (req, res) => {
+  const {id} = req.params;
+  try {
+    await connection.query(`
+      UPDATE rentals 
+      SET  
+        "returnDate"=$1,
+        "delayFee"=$2
+      WHERE id=$3        
+    `,[dayjs().format('DD-MM-YY'), 0, id]); //FIXME: Colocar diferença de dias
+    
+    res.sendStatus(200);
+  } catch (e) {
+    console.log("Error post rentals.", e);
+    return res.sendStatus(500);
+  }
 });
 
-rentalsRoute.delete('/rentals/:id', (req, res) => {
-  
+rentalsRoute.delete('/rentals/:id', async (req, res) => {
+  const {id} = req.params;
+  try {
+    const rental = await connection.query(`
+      SELECT * FROM rentals
+      WHERE id=$1
+    `, [id]);
+    if(!rental.rows[0]) return res.sendStatus(404);
+    if(rental.rows[0].returnDate) return res.sendStatus(400);
+
+    await connection.query(`
+      DELETE FROM rentals
+      WHERE id=$1     
+    `,[id]);
+    
+    res.sendStatus(200);
+  } catch (e) {
+    console.log("Error delete rentals.", e);
+    return res.sendStatus(500);
+  }
 })
 
 export default rentalsRoute;

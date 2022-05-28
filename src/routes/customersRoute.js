@@ -29,7 +29,6 @@ customersRoute.get('/customers/:id', async (req, res) => {
     WHERE id=$1
     `, [id]);
     
-    console.log(id, customers.rows[0]);
     if(!customers.rows[0]) return res.sendStatus(404);
 
     res.send(customers.rows[0]);
@@ -69,7 +68,7 @@ customersRoute.post('/customers', async (req, res) => {
 customersRoute.put('/customers/:id', async (req, res) => {
   const {name,phone,cpf,birthday} = req.body;
   const {id} = req.params;
-  console.log(name, phone, cpf, birthday, id);
+  
   try {
     const customersId = await connection.query(`
       SELECT * FROM customers
