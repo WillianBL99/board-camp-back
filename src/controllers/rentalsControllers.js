@@ -65,7 +65,12 @@ export async function postRentalId(req, res){
         "returnDate"=$1,
         "delayFee"=$2
       WHERE id=$3        
-    `,[dayjs().format('DD-MM-YY'), 0, id]); //FIXME: Colocar diferença de dias
+    `,[
+        dayjs().format('DD-MM-YY'),
+        res.locals.delayFee,
+        id
+      ]
+    );
     
     res.sendStatus(200);
   } catch (e) {
