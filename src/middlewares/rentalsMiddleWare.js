@@ -66,26 +66,27 @@ export async function postRentalIdMiddleWare(req, res, next){
   try {
     const {id} = req.params;
 
-    const customers = await connection.query(`
+    const rentals = await connection.query(`
       SELECT * FROM rentals
       WHERE id=$1 AND "returnDate" IS null
     `,[id]);
 
-    if(!customers.rows[0]){
+    if(!rentals.rows[0]){
       return res.sendStatus(400);
     }
 
-    const rentals = await connection.query(`
-      SELECT * FROM rentals
-    `);
+    
+    const MS_PER_DAY = (1000 * 60 * 60 * 24);
+    const msCurrent = Date.parse(new Date());
+    const rental = rentals.rows[0];
 
-    const msPerDay = (1000 * 60 * 60 * 24);
+    const msPrevious = Date.parse(rental.rentDate);    
+    const daysInterval = parseInt( (msCurrent - msPrevious) / MS_PER_DAY ) - rental.daysRented;
+    const delayDays = daysInterval < 0?0:daysInterval;
 
-    const msAnt = Date.parse(rentals.rows[0].rentDate);
-    const msAtu = Date.parse(new Date());
-    const daysInterval = parseInt( (msAtu - msAnt) / msPerDay ) - rentals.rows[0].daysRented;
+    const pricePerDay = rental.originalPrice/rental.daysRented;
 
-    res.locals.delayFee = daysInterval < 0?0:daysInterval;
+    res.locals.delayFee = delayDays * pricePerDay;
 
     next();
     
