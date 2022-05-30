@@ -4,11 +4,11 @@ dotenv.config();
 import pg from "pg"
 const {Pool} = pg;
 
-const databaseConfig = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+const databaseConfig = {
+  connectionString: process.env.DATABASE_URL
+};
 
-if(process.env.MOD === "PROD"){
+if(process.env.MODE === "PROD"){
   databaseConfig.ssl = {
     rejectUnauthorized: false
   }
