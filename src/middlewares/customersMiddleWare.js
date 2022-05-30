@@ -30,11 +30,10 @@ export async function getCustomerMiddleWare(req, res, next){
 export async function postCostumerMiddleWare(req, res, next){
   try {
     const {cpf} = req.body;
-
     if(!isValidCustomerBody(res, req.body)) return;
-
-    if(isExistentsCPF(res, cpf)) return;
-
+    
+    if(await isExistentsCPF(res, cpf)) return;
+    
     next();
     
   } catch (e) {
@@ -79,20 +78,14 @@ function isValidCustomerBody(res, body){
 }
 
 async function isExistentsCPF(res, cpf){
-  try {
-    const customers = await connection.query(`
-      SELECT * FROM customers
-      WHERE cpf = $1
-    `, [cpf]);
-
-    if(customers.rows[0]) {
-      res.sendStatus(409);
-      return true;
-    }
-    return false;
-
-  } catch (e) {
-    console.log("Error CPF validation.", e);
-    return res.sendStatus(500);
+  const customers = await connection.query(`
+    SELECT * FROM customers
+    WHERE cpf = $1
+  `, [cpf]);
+  if('rouws',customers.rows[0]) {
+    res.sendStatus(409);
+    return true;
   }
+  
+  return false;
 }

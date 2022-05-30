@@ -32,7 +32,7 @@ export async function getCustomer(req, res){
 export async function postCustomer(req, res){  
   try {
     const {name,phone,cpf,birthday} = req.body;
-
+    console.log(name,phone, cpf, birthday);
     await connection.query(`
       INSERT INTO customers
       (name, phone, cpf, birthday)
