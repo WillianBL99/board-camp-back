@@ -39,12 +39,11 @@ export async function postRental(req, res){
     
     await connection.query(`
       INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
-      VALUES ($1,$2,$3,$4,$5)
+      VALUES ($1,$2,$3,NOW(),$4)
     `, [
       parseInt(customerId),
       parseInt(gameId),
       parseInt(daysRented),
-      NOW(),
       parseInt(daysRented * pricePerDay)
     ]);
 
@@ -62,11 +61,10 @@ export async function postRentalId(req, res){
     await connection.query(`
       UPDATE rentals 
       SET  
-        "returnDate"=$1,
-        "delayFee"=$2
-      WHERE id=$3        
+        "returnDate"=NOW(),
+        "delayFee"=$1
+      WHERE id=$2        
     `,[
-        NOW(),
         res.locals.delayFee,
         id
       ]
