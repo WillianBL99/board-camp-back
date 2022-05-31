@@ -44,7 +44,7 @@ export async function postRental(req, res){
       parseInt(customerId),
       parseInt(gameId),
       parseInt(daysRented),
-      dayjs().format('DD/MM/YY'),
+      NOW(),
       parseInt(daysRented * pricePerDay)
     ]);
 
@@ -66,7 +66,7 @@ export async function postRentalId(req, res){
         "delayFee"=$2
       WHERE id=$3        
     `,[
-        dayjs().format('DD-MM-YY'),
+        NOW(),
         res.locals.delayFee,
         id
       ]
